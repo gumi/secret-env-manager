@@ -9,17 +9,9 @@ import (
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"google.golang.org/api/iterator"
 )
-
-type GCPSecret struct {
-	Name         string
-	CreationTime string
-}
-
-type GCPSecrets struct {
-	Secrets []GCPSecret
-}
 
 func AccessSecretVersion(name string) (*string, error) {
 	ctx := context.Background()
@@ -48,7 +40,9 @@ func AccessSecretVersion(name string) (*string, error) {
 	return &data, nil
 }
 
-func ListSecrets(parent string) (*GCPSecrets, error) {
+func ListSecrets(project string) (*model.Secrets, error) {
+	parent := fmt.Sprintf("projects/%s", project)
+
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -62,7 +56,7 @@ func ListSecrets(parent string) (*GCPSecrets, error) {
 
 	it := client.ListSecrets(ctx, req)
 
-	gcpSecrets := GCPSecrets{}
+	gcpSecrets := model.Secrets{}
 	re := regexp.MustCompile(`[^/]+$`)
 
 	for {
@@ -75,11 +69,14 @@ func ListSecrets(parent string) (*GCPSecrets, error) {
 			return nil, fmt.Errorf("failed to list secrets: %w", err)
 		}
 		result := re.FindString(resp.Name)
+		
 		unixTime := time.Unix(resp.CreateTime.GetSeconds(), int64(resp.CreateTime.GetNanos()))
 		rfc3339Time := unixTime.Format(time.RFC3339)
-		gcpSecret := GCPSecret{
-			Name:         result,
-			CreationTime: rfc3339Time,
+		
+		gcpSecret := model.Secret{
+			Name:      result,
+			CreatedAt: rfc3339Time,
+			Version:   "latest",
 		}
 
 		gcpSecrets.Secrets = append(gcpSecrets.Secrets, gcpSecret)

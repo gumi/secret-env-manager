@@ -8,7 +8,8 @@ import (
 )
 
 type textFieldModel struct {
-	Value string
+	Description string
+	Value       string
 }
 
 type msgUpdate string
@@ -42,11 +43,14 @@ func (m textFieldModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m textFieldModel) View() string {
-	return fmt.Sprintf("Please Select GCP Project : %s ", m.Value)
+	return fmt.Sprintf("%s : %s ", m.Description, m.Value)
 }
 
-func TextField() string {
-	initialModel := textFieldModel{}
+func TextField(description string, defaultValue string) string {
+	initialModel := textFieldModel{
+		Description: description,
+		Value:       defaultValue,
+	}
 
 	p := tea.NewProgram(initialModel)
 	model, err := p.Run()

@@ -5,16 +5,16 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 )
 
 type checkboxListModel struct {
-	Secrets  gcp.GCPSecrets
+	Secrets  model.Secrets
 	Selected []bool
 	Index    int
 }
 
-func CheckBoxList(secrets gcp.GCPSecrets) checkboxListModel {
+func CheckBoxList(secrets model.Secrets) checkboxListModel {
 	initialModel := checkboxListModel{
 		Secrets:  secrets,
 		Selected: make([]bool, len(secrets.Secrets)),
@@ -78,7 +78,7 @@ func (m checkboxListModel) View() string {
 			text += "[ ] "
 		}
 
-		items += fmt.Sprintf("%s%s (%s)\n", text, secret.Name, secret.CreationTime)
+		items += fmt.Sprintf("%s%s (%s)\n", text, secret.Name, secret.CreatedAt)
 	}
 	return fmt.Sprintf("Select secrets:\nsecret name (created at)\n%s", items)
 }

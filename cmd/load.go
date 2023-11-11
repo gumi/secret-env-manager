@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
+	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
 	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
 	"github.com/urfave/cli"
@@ -18,23 +20,27 @@ func Load(c *cli.Context) error {
 		return nil
 	}
 
-	exports := []string{}
-
 	config, err := file.ReadTomlFile()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
 		return err
 	}
 
-	for _, env := range config.GCP.Environments {
-		secretName := fmt.Sprintf("projects/%s/secrets/%s/versions/%s", config.GCP.Project, env.SecretName, env.Version)
-		data, err := gcp.AccessSecretVersion(secretName)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		exports = append(exports, fmt.Sprintf("export %s=%s\n", env.ExportName, *data))
+	exports := []string{}
+
+	gcpExports, err := gcp.Load(config)
+	if err != nil {
+		log.Fatalln(err)
+		return err
 	}
+	exports = append(exports, gcpExports...)
+
+	awsExports, err := aws.Load(config)
+	if err != nil {
+		log.Fatalln(err)
+		return err
+	}
+	exports = append(exports, awsExports...)
 
 	fmt.Println(strings.Join(exports, ""))
 	return nil
