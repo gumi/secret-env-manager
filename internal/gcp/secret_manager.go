@@ -69,10 +69,10 @@ func ListSecrets(project string) (*model.Secrets, error) {
 			return nil, fmt.Errorf("failed to list secrets: %w", err)
 		}
 		result := re.FindString(resp.Name)
-		
+
 		unixTime := time.Unix(resp.CreateTime.GetSeconds(), int64(resp.CreateTime.GetNanos()))
 		rfc3339Time := unixTime.Format(time.RFC3339)
-		
+
 		gcpSecret := model.Secret{
 			Name:      result,
 			CreatedAt: rfc3339Time,

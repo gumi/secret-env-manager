@@ -1,5 +1,18 @@
 # Secret Env Manager (sem)
 
+## Description
+GCP や AWS に保存してあるシークレットを環境変数にロードするツールです。
+- init コマンドは、環境変数にロードするシークレットを選択し、env ファイルを生成します。ただし、リストは１アカウントからしかとってこないので、簡単にenvファイルを作りたいときにだけ使えます。複数アカウントからシークレットを取得したい場合は、直接envファイルを編集してください。
+- load コマンドは、env ファイルを読み込み、export文を組み立てます。
+
+
+## Support
+- [x] Multi Account Support
+- [ ] Service
+  - [x] GCP Secret Manager
+  - [x] AWS Secrets Manager
+  - [ ] openstack ?
+
 ## Install
 
 ```bash

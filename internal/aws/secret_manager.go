@@ -44,11 +44,14 @@ func ListSecrets(profile string) (*model.Secrets, error) {
 	return &secrets, nil
 }
 
-func AccessSecret(secretName string) (string, error) {
-	// secretName := "test/test_secret"
+func AccessSecret(secretName string, profile string) (string, error) {
 	region := "ap-northeast-1"
 
-	config, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+	config, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithSharedConfigProfile(profile),
+		config.WithRegion(region),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
