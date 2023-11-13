@@ -8,7 +8,6 @@ require (
 	cloud.google.com/go/secretmanager v1.11.4
 	github.com/BurntSushi/toml v1.3.2
 	github.com/charmbracelet/bubbletea v0.24.2
-	github.com/urfave/cli v1.22.14
 	google.golang.org/api v0.149.0
 )
 
@@ -20,6 +19,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.17.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.19.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.25.1 // indirect
+	github.com/urfave/cli/v2 v2.25.7 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
 
 require (

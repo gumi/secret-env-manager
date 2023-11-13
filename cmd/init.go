@@ -7,16 +7,42 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
 	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
-	"github.com/urfave/cli"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
+	"github.com/urfave/cli/v2"
 )
 
 func Init(c *cli.Context) error {
-	if !file.IsWrite() {
+	switch c.String("file") {
+
+	case "toml":
+		fileName := file.TOML_FILE_NAME
+		config := initHandle(fileName)
+		if err := file.WriteTomlFile(config, fileName); err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(fmt.Sprintf("%s has been saved.", fileName))
+
+	default:
+		fileName := file.PLAIN_FILE_NAME
+		config := initHandle(fileName)
+		if err := file.WritePlainFile(config, fileName); err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(fmt.Sprintf("%s has been saved.", fileName))
+
+	}
+
+	return nil
+
+}
+
+func initHandle(fileName string) *model.Config {
+	if !file.IsWrite(fileName) {
 		return nil
 	}
 
 	// convert
-	config := file.Config{}
+	config := model.Config{}
 
 	println("------------------------------------------")
 	if err := gcp.Init(&config); err != nil {
@@ -28,19 +54,10 @@ func Init(c *cli.Context) error {
 	}
 	println("------------------------------------------")
 
-	if len(config.AWS.Environments) == 0 && len(config.GCP.Environments) == 0 {
+	if len(config.Environments) == 0 {
 		fmt.Println("No environments found, init canceled.")
 		return nil
 	}
 
-	// output
-	if err := file.WriteTomlFile(config); err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Println(fmt.Sprintf("%s has been saved.", file.FILE_NAME))
-	fmt.Println("ExportName can be changed to any value you like.")
-
-	return nil
-
+	return &config
 }

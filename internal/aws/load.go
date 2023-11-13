@@ -3,13 +3,16 @@ package aws
 import (
 	"fmt"
 
-	"github.com/gumi-tsd/secret-env-manager/internal/file"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 )
 
-func Load(config *file.Config) ([]string, error) {
+func Load(config *model.Config) ([]string, error) {
 	exports := []string{}
 
-	for _, env := range config.AWS.Environments {
+	for _, env := range config.Environments {
+		if env.Platform != "aws" {
+			continue
+		}
 
 		data, err := AccessSecret(env.SecretName)
 		if err != nil {
@@ -30,7 +33,7 @@ func Load(config *file.Config) ([]string, error) {
 		// 	exports = append(exports, export)
 		// }
 
-		export := fmt.Sprintf("export %s=\"%s\"\n", env.ExportName, data)
+		export := fmt.Sprintf("export %s='%s'\n", env.ExportName, data)
 		exports = append(exports, export)
 	}
 

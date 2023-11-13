@@ -9,21 +9,33 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
 	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func Load(c *cli.Context) error {
-	// check exist with stat
-	if _, err := os.Stat(file.FILE_NAME); os.IsNotExist(err) {
-		fmt.Printf("%s does not exist.\n", file.FILE_NAME)
-		fmt.Println("Please run `sem init`.")
-		return nil
+	switch c.String("type") {
+
+	case "toml":
+		loadHandle(file.TOML_FILE_NAME)
+
+	default:
+		loadHandle(file.PLAIN_FILE_NAME)
+
 	}
 
-	config, err := file.ReadTomlFile()
+	return nil
+}
+
+func loadHandle(fileName string) {
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		fmt.Printf("%s does not exist.\n", fileName)
+		fmt.Println("Please run `sem init`.")
+		return
+	}
+
+	config, err := file.ReadPlainFile(fileName)
 	if err != nil {
 		log.Fatalln(err)
-		return err
 	}
 
 	exports := []string{}
@@ -31,17 +43,14 @@ func Load(c *cli.Context) error {
 	gcpExports, err := gcp.Load(config)
 	if err != nil {
 		log.Fatalln(err)
-		return err
 	}
 	exports = append(exports, gcpExports...)
 
 	awsExports, err := aws.Load(config)
 	if err != nil {
 		log.Fatalln(err)
-		return err
 	}
 	exports = append(exports, awsExports...)
 
 	fmt.Println(strings.Join(exports, ""))
-	return nil
 }

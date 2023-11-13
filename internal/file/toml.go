@@ -1,41 +1,19 @@
 package file
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 )
 
-const FILE_NAME = "env.toml"
+const TOML_FILE_NAME = "env.toml"
 
-type Config struct {
-	AWS AWS `toml:"aws"`
-	GCP GCP `toml:"gcp"`
-}
+func ReadTomlFile(fileName string) (*model.Config, error) {
+	var config model.Config
 
-type AWS struct {
-	Profile      string `toml:"Profile"`
-	Environments []Env  `toml:"env"`
-}
-
-type GCP struct {
-	Project      string `toml:"Project"`
-	Environments []Env  `toml:"env"`
-}
-
-type Env struct {
-	SecretName string `toml:"SecretName"`
-	ExportName string `toml:"ExportName"`
-	Version    string `toml:"Version"`
-}
-
-func ReadTomlFile() (*Config, error) {
-	var config Config
-
-	_, err := toml.DecodeFile(FILE_NAME, &config)
+	_, err := toml.DecodeFile(fileName, &config)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -44,8 +22,8 @@ func ReadTomlFile() (*Config, error) {
 	return &config, nil
 }
 
-func WriteTomlFile(config Config) error {
-	f, err := os.Create(FILE_NAME)
+func WriteTomlFile(config *model.Config, fileName string) error {
+	f, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
@@ -57,19 +35,4 @@ func WriteTomlFile(config Config) error {
 	}
 
 	return nil
-}
-
-func IsWrite() bool {
-	if _, err := os.Stat(FILE_NAME); err == nil {
-		fmt.Printf("File %s already exists. Do you want to overwrite it? (yes/no): ", FILE_NAME)
-		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
-		input = strings.ToLower(strings.TrimSpace(input))
-		if input != "yes" {
-			fmt.Println("Canceled.")
-			return false
-		}
-	}
-	// file not exists
-	return true
 }

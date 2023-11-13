@@ -6,12 +6,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gumi-tsd/secret-env-manager/internal/file"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"github.com/gumi-tsd/secret-env-manager/internal/ui"
 )
 
-func Init(config *file.Config) error {
+func Init(config *model.Config) error {
 	profile := ui.TextField("Please Select AWS Profile (emplty is skip)", os.Getenv("AWS_PROFILE"))
+	profile = strings.TrimSpace(profile)
+
 	if profile == "" {
 		fmt.Println("Profile is empty, skipped AWS init.")
 		return nil
@@ -29,13 +31,15 @@ func Init(config *file.Config) error {
 	// convert
 	re := regexp.MustCompile(`[^a-zA-Z0-9_]+`)
 
-	config.AWS.Profile = profile
 	for i, secret := range uiModel.Secrets.Secrets {
 		if uiModel.Selected[i] {
 			exportName := strings.ToUpper(secret.Name)
 			exportName = re.ReplaceAllString(exportName, "_")
 
-			config.AWS.Environments = append(config.AWS.Environments, file.Env{
+			config.Environments = append(config.Environments, model.Env{
+				Platform:   "aws",
+				Service:    "secretsmanager",
+				Account:    profile,
 				SecretName: secret.Name,
 				ExportName: exportName,
 				Version:    secret.Version,

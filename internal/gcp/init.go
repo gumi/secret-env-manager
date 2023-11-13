@@ -6,12 +6,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gumi-tsd/secret-env-manager/internal/file"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"github.com/gumi-tsd/secret-env-manager/internal/ui"
 )
 
-func Init(config *file.Config) error {
+func Init(config *model.Config) error {
 	project := ui.TextField("Please Select GCP Project (emplty is skip)", os.Getenv("GCP_PROJECT"))
+	project = strings.TrimSpace(project)
+
 	if project == "" {
 		fmt.Println("Project is empty, skipped GCP init.")
 		return nil
@@ -29,13 +31,15 @@ func Init(config *file.Config) error {
 	// convert
 	re := regexp.MustCompile(`[^a-zA-Z0-9_]+`)
 
-	config.GCP.Project = project
 	for i, secret := range uiModel.Secrets.Secrets {
 		if uiModel.Selected[i] {
 			exportName := strings.ToUpper(secret.Name)
 			exportName = re.ReplaceAllString(exportName, "_")
 
-			config.GCP.Environments = append(config.GCP.Environments, file.Env{
+			config.Environments = append(config.Environments, model.Env{
+				Platform:   "gcp",
+				Service:    "secretmanager",
+				Account:    project,
 				SecretName: secret.Name,
 				ExportName: exportName,
 				Version:    secret.Version,
