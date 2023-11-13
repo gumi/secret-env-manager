@@ -9,35 +9,84 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
 	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
+	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"github.com/urfave/cli/v2"
 )
 
 func Load(c *cli.Context) error {
-	switch c.String("type") {
+	fileName := ""
 
+	switch c.String("file") {
 	case "toml":
-		loadHandle(file.TOML_FILE_NAME)
+		fileName = file.TOML_FILE_NAME
 
 	default:
-		loadHandle(file.PLAIN_FILE_NAME)
-
+		fileName = file.PLAIN_FILE_NAME
 	}
+
+	if err := loadCache(fileName); err == nil {
+		return nil
+	}
+
+	cache(fileName)
 
 	return nil
 }
 
-func loadHandle(fileName string) {
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		fmt.Printf("%s does not exist.\n", fileName)
-		fmt.Println("Please run `sem init`.")
-		return
+func getCacheFileName(fileName string) string {
+	return fmt.Sprintf(".cache.%s", fileName)
+}
+
+func loadCache(fileName string) error {
+	cacheFileName := getCacheFileName(fileName)
+
+	data, err := os.ReadFile(cacheFileName)
+	if err == nil {
+		printExports(strings.Split(string(data), "\n"))
+		return nil
 	}
 
-	config, err := file.ReadPlainFile(fileName)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	return err
+}
 
+func printExports(exports []string) {
+	for _, export := range exports {
+		if export == "" {
+			continue
+		}
+
+		fmt.Printf("export %s\n", export)
+	}
+}
+
+func cache(fileName string) {
+	config := readConfigFromFile(fileName)
+	exports := loadEnvironments(config)
+
+	os.WriteFile(getCacheFileName(fileName), []byte(strings.Join(exports, "")), 0644)
+	printExports(exports)
+}
+
+func readConfigFromFile(fileName string) *model.Config {
+	config := &model.Config{}
+	err := error(nil)
+
+	switch fileName {
+	case file.TOML_FILE_NAME:
+		config, err = file.ReadTomlFile(fileName)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	default:
+		config, err = file.ReadPlainFile(fileName)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+	return config
+}
+
+func loadEnvironments(config *model.Config) []string {
 	exports := []string{}
 
 	gcpExports, err := gcp.Load(config)
@@ -52,5 +101,6 @@ func loadHandle(fileName string) {
 	}
 	exports = append(exports, awsExports...)
 
-	fmt.Println(strings.Join(exports, ""))
+	return exports
+
 }

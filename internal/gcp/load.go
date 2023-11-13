@@ -21,7 +21,7 @@ func Load(config *model.Config) ([]string, error) {
 			return nil, err
 		}
 
-		export := fmt.Sprintf("export %s='%s'\n", env.ExportName, *data)
+		export := fmt.Sprintf("%s='%s'\n", env.ExportName, *data)
 
 		exports = append(exports, export)
 	}

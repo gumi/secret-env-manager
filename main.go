@@ -34,6 +34,12 @@ func main() {
 			Action: cmd.Load,
 			Flags:  flags,
 		},
+		{
+			Name:   "update",
+			Usage:  fmt.Sprintf("Forcefully update the cached information for the load command."),
+			Action: cmd.Update,
+			Flags:  flags,
+		},
 	}
 
 	app.Run(os.Args)
