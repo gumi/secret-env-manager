@@ -58,6 +58,24 @@ $ echo $TEST_TEST_SECRET
 
 
 ```
+## params
+
+- Platform
+  - クラウドプラットフォームを指定します。現在は、gcp と aws が指定可能です。
+- Service
+  - シークレットを保存しているサービスを指定します。現在は、gcp の secretmanager と aws の secretsmanager が指定可能です。
+- Account
+  - シークレットを保存しているアカウントを指定します。
+- SecretName
+  - シークレット名を指定します。
+- ExportName
+  - 環境変数名を指定します。
+- Version
+  - シークレットのバージョンを指定します。gcp は latest と指定すると最新のバージョンを取得します。aws は AWSCURRENT と指定すると最新のバージョンを取得します。
+- Key
+  - シークレットのキーを指定します。gcp は指定しないでください。aws かつ 値が json の場合は指定したキーの値を取得します。
+
+
 ## env (plain) example
 
 ```txt
@@ -66,7 +84,7 @@ TEST_TEST_SECRET=sem://aws:secretsmanager/xxx-profile/test/test_secret
 ```
 
 ### format
-`EXPORT_NAME=sem://<Platform>:<Service>/<Account>/<SecretName>?version=<Version>`
+`EXPORT_NAME=sem://<Platform>:<Service>/<Account>/<SecretName>?version=<Version>&key=<Key>`
 
 ## env.toml example
 
