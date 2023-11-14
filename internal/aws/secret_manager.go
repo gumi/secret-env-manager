@@ -44,12 +44,12 @@ func ListSecrets(profile string) (*model.Secrets, error) {
 	return &secrets, nil
 }
 
-func AccessSecret(secretName string, profile string) (string, error) {
+func AccessSecret(env model.Env) (string, error) {
 	region := "ap-northeast-1"
 
 	config, err := config.LoadDefaultConfig(
 		context.TODO(),
-		config.WithSharedConfigProfile(profile),
+		config.WithSharedConfigProfile(env.Account),
 		config.WithRegion(region),
 	)
 	if err != nil {
@@ -60,8 +60,8 @@ func AccessSecret(secretName string, profile string) (string, error) {
 	svc := secretsmanager.NewFromConfig(config)
 
 	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secretName),
-		VersionStage: aws.String("AWSCURRENT"),
+		SecretId:     aws.String(env.SecretName),
+		VersionStage: aws.String(env.Version),
 	}
 
 	result, err := svc.GetSecretValue(context.TODO(), input)

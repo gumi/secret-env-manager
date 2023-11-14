@@ -14,7 +14,7 @@ func Load(config *model.Config) ([]string, error) {
 			continue
 		}
 
-		data, err := AccessSecret(env.SecretName, env.Account)
+		data, err := AccessSecret(env)
 		if err != nil {
 			return nil, err
 		}
