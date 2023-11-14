@@ -3,6 +3,7 @@ package file
 import (
 	"bufio"
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -46,11 +47,9 @@ func parseEnv(line string) (*model.Env, error) {
 	name := x[0]
 	uri := x[1]
 
-	re := regexp.MustCompile(`sem://(?P<platform>[^/:]+):(?P<service>[^/]+)/(?P<account>[^/]+)/(?P<secretName>[^?]+)(\?version=(?P<version>[^&]+))?`)
-
+	re := regexp.MustCompile(`sem://(?P<platform>[^/:]+):(?P<service>[^/]+)/(?P<account>[^/]+)/(?P<secretName>[^?]+)`)
 	if !re.MatchString(uri) {
-		fmt.Println("Invalid URI")
-		return nil, nil
+		return nil, fmt.Errorf("Invalid URI")
 	}
 
 	// 正規表現にマッチするグループを取得する
@@ -62,6 +61,28 @@ func parseEnv(line string) (*model.Env, error) {
 		}
 	}
 
+	// query parameterを取得する
+	parts := strings.SplitAfter(uri, "?")
+	if len(parts) > 2 {
+		return nil, fmt.Errorf("Invalid URI")
+	} else if len(parts) == 2 {
+		queryString := parts[1]
+		fmt.Println(queryString)
+
+		u, err := url.Parse("http://localhost?" + queryString)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid URI")
+		}
+
+		queryParams := u.Query()
+		for key, values := range queryParams {
+			for _, value := range values {
+				groups[key] = value
+			}
+		}
+	}
+
+	// version に関しては、指定がない場合は、デフォルト値を設定する
 	if groups["version"] == "" {
 		switch groups["platform"] {
 		case "aws":
@@ -81,6 +102,7 @@ func parseEnv(line string) (*model.Env, error) {
 		SecretName: groups["secretName"],
 		ExportName: name,
 		Version:    groups["version"],
+		Key:        groups["key"],
 	}
 
 	return &env, nil

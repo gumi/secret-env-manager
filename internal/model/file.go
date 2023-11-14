@@ -11,4 +11,5 @@ type Env struct {
 	SecretName string `toml:"SecretName"`
 	ExportName string `toml:"ExportName"`
 	Version    string `toml:"Version"`
+	Key        string `toml:"Key"`
 }
