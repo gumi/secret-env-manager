@@ -60,13 +60,13 @@ TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 
 # if you use bash or zsh shell
 $ eval $(sem load -e) | env
-...
+…
 SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
 TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
-...
-
+…
 
 ```
+
 ## params
 
 - Platform
@@ -116,3 +116,57 @@ TEST_TEST_SECRET=sem://aws:secretsmanager/xxx-profile/test/test_secret
   Version = "AWSCURRENT"
 
 ```
+
+
+# Help
+```bash
+# sem -h
+
+NAME:
+   secret-env-manager - manage secret environment variables
+
+USAGE:
+   secret-env-manager [global options] command [command options] [arguments...]
+
+COMMANDS:
+   init     Save the credentials stored in GCP Secret Manager as file.
+   load     Output a string to read credentials from SecretManager based on the file and export them as environment variables.
+   update   Forcefully update the cached information for the load command.
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h  show help
+
+$ sem init -h
+
+USAGE:
+   secret-env-manager init [command options] [arguments...]
+
+OPTIONS:
+   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
+   --help, -h              show help
+
+
+$ sem load -h
+
+USAGE:
+   secret-env-manager load [command options] [arguments...]
+
+OPTIONS:
+   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
+   --with-export, -e       When this option is enabled, 'export' is added when displaying to standard output. (default: false)
+   --help, -h              show help
+
+
+$ sem update -h
+
+USAGE:
+   secret-env-manager update [command options] [arguments...]
+
+OPTIONS:
+   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
+   --with-quote, -q        When this option is enabled, single quotes are added to the cached environment variable values. It is generally recommended to use this option when the value contains spaces. (default: false)
+   --help, -h              show help
+
+```
+
