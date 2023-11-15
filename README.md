@@ -50,11 +50,9 @@ $ sem load
 export SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
 export TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 
-$ eval $(sem load)
-$ echo $SAMPLE_SECRET
-knCFtym5URfRY#W9oaGUYGmxs4p
-$ echo $TEST_TEST_SECRET
-'{"test_secret":"test_secretXXXXX"}'
+$ env -i $(sem load) env
+SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
+TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 
 
 ```

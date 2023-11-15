@@ -55,7 +55,7 @@ func printExports(exports []string) {
 			continue
 		}
 
-		fmt.Printf("export %s\n", export)
+		fmt.Printf("%s\n", export)
 	}
 }
 
