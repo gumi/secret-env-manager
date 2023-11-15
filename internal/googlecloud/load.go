@@ -1,4 +1,4 @@
-package gcp
+package googlecloud
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ func Load(config *model.Config,withQuote bool) ([]string, error) {
 	exports := []string{}
 
 	for _, env := range config.Environments {
-		if env.Platform != "gcp" {
+		if env.Platform != "googlecloud" {
 			continue
 		}
 

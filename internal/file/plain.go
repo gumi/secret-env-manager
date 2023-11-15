@@ -86,7 +86,7 @@ func parseEnv(line string) (*model.Env, error) {
 		switch groups["platform"] {
 		case "aws":
 			groups["version"] = "AWSCURRENT"
-		case "gcp":
+		case "googlecloud":
 			groups["version"] = "latest"
 		default:
 			fmt.Println("Invalid URI")
@@ -124,7 +124,7 @@ func WritePlainFile(config *model.Config, fileName string) error {
 		}
 
 		uri := fmt.Sprintf("sem://%s:%s/%s/%s", env.Platform, env.Service, env.Account, env.SecretName)
-		if (env.Platform == "aws" && env.Version != "AWSCURRENT") || (env.Platform == "gcp" && env.Version != "latest") {
+		if (env.Platform == "aws" && env.Version != "AWSCURRENT") || (env.Platform == "googlecloud" && env.Version != "latest") {
 			uri = fmt.Sprintf("%s?version=%s", uri, env.Version)
 		}
 

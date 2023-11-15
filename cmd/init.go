@@ -6,7 +6,7 @@ import (
 
 	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
-	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
+	"github.com/gumi-tsd/secret-env-manager/internal/googlecloud"
 	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"github.com/urfave/cli/v2"
 )
@@ -45,7 +45,7 @@ func initHandle(fileName string) *model.Config {
 	config := model.Config{}
 
 	println("------------------------------------------")
-	if err := gcp.Init(&config); err != nil {
+	if err := googlecloud.Init(&config); err != nil {
 		log.Fatalln(err)
 	}
 	println("==========================================")

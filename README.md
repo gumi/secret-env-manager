@@ -1,7 +1,7 @@
 # Secret Env Manager (sem)
 
 ## Description
-GCP や AWS に保存してあるシークレットを環境変数にロードするツールです。
+googlecloud や AWS に保存してあるシークレットを環境変数にロードするツールです。
 - init コマンドは、環境変数にロードするシークレットを選択し、env ファイルを生成します。ただし、リストは１アカウントからしかとってこないので、簡単にenvファイルを作りたいときにだけ使えます。複数アカウントからシークレットを取得したい場合は、直接envファイルを編集してください。
 - load コマンドは、env ファイルを読み込み、export文を組み立てます。exportはキャッシュされるので、毎回シークレットを取得する必要はありません。
 - update コマンドは、env ファイルを読み込み、シークレットを更新します。
@@ -10,7 +10,7 @@ GCP や AWS に保存してあるシークレットを環境変数にロード�
 ## Support
 - [x] Multi Account Support
 - [ ] Service
-  - [x] GCP Secret Manager
+  - [x] googlecloud Secret Manager
   - [x] AWS Secrets Manager
   - [ ] openstack ?
 
@@ -88,7 +88,7 @@ TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 ## env (plain) example
 
 ```txt
-SAMPLE_SECRET=sem://gcp:secretmanager/xxx-project/sample_secret
+SAMPLE_SECRET=sem://googlecloud:secretmanager/xxx-project/sample_secret
 TEST_TEST_SECRET=sem://aws:secretsmanager/xxx-profile/test/test_secret
 ```
 
@@ -99,7 +99,7 @@ TEST_TEST_SECRET=sem://aws:secretsmanager/xxx-profile/test/test_secret
 
 ```toml
 [[Environments]]
-  Platform = "gcp"
+  Platform = "googlecloud"
   Service = "secretmanager"
   Account = "xxx-project"
   SecretName = "sample_secret"
@@ -129,7 +129,7 @@ USAGE:
    secret-env-manager [global options] command [command options] [arguments...]
 
 COMMANDS:
-   init     Save the credentials stored in GCP Secret Manager as file.
+   init     Save the credentials stored in googlecloud Secret Manager as file.
    load     Output a string to read credentials from SecretManager based on the file and export them as environment variables.
    update   Forcefully update the cached information for the load command.
    help, h  Shows a list of commands or help for one command

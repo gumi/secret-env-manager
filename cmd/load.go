@@ -8,7 +8,7 @@ import (
 
 	"github.com/gumi-tsd/secret-env-manager/internal/aws"
 	"github.com/gumi-tsd/secret-env-manager/internal/file"
-	"github.com/gumi-tsd/secret-env-manager/internal/gcp"
+	"github.com/gumi-tsd/secret-env-manager/internal/googlecloud"
 	"github.com/gumi-tsd/secret-env-manager/internal/model"
 	"github.com/urfave/cli/v2"
 )
@@ -87,7 +87,7 @@ func readConfigFromFile(fileName string) *model.Config {
 func loadEnvironments(config *model.Config, withQuote bool) []string {
 	exports := []string{}
 
-	gcpExports, err := gcp.Load(config,withQuote)
+	gcpExports, err := googlecloud.Load(config,withQuote)
 	if err != nil {
 		log.Fatalln(err)
 	}

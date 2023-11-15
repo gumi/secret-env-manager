@@ -1,4 +1,4 @@
-package gcp
+package googlecloud
 
 import (
 	"fmt"
@@ -11,11 +11,11 @@ import (
 )
 
 func Init(config *model.Config) error {
-	project := ui.TextField("Please Select GCP Project (emplty is skip)", os.Getenv("GCP_PROJECT"))
+	project := ui.TextField("Please Select googlecloud Project (emplty is skip)", os.Getenv("GCP_PROJECT"))
 	project = strings.TrimSpace(project)
 
 	if project == "" {
-		fmt.Println("Project is empty, skipped GCP init.")
+		fmt.Println("Project is empty, skipped googlecloud init.")
 		return nil
 	}
 	fmt.Printf("project : %s\n", project)
@@ -37,7 +37,7 @@ func Init(config *model.Config) error {
 			exportName = re.ReplaceAllString(exportName, "_")
 
 			config.Environments = append(config.Environments, model.Env{
-				Platform:   "gcp",
+				Platform:   "googlecloud",
 				Service:    "secretmanager",
 				Account:    project,
 				SecretName: secret.Name,

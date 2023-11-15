@@ -35,7 +35,7 @@ func main() {
 	app.Commands = []*cli.Command{
 		{
 			Name:   "init",
-			Usage:  fmt.Sprintf("Save the credentials stored in GCP Secret Manager as file."),
+			Usage:  fmt.Sprintf("Save the credentials stored in googlecloud Secret Manager as file."),
 			Action: cmd.Init,
 			Flags:  []cli.Flag{
 				fileFlags,
