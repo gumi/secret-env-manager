@@ -67,7 +67,6 @@ func parseEnv(line string) (*model.Env, error) {
 		return nil, fmt.Errorf("Invalid URI")
 	} else if len(parts) == 2 {
 		queryString := parts[1]
-		fmt.Println(queryString)
 
 		u, err := url.Parse("http://localhost?" + queryString)
 		if err != nil {

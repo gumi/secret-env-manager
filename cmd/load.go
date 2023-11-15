@@ -15,6 +15,7 @@ import (
 
 func Load(c *cli.Context) error {
 	fileName := ""
+	withExport := c.Bool("with-export")
 
 	switch c.String("file") {
 	case "toml":
@@ -23,12 +24,13 @@ func Load(c *cli.Context) error {
 	default:
 		fileName = file.PLAIN_FILE_NAME
 	}
-
-	if err := loadCache(fileName); err == nil {
-		return nil
+	
+	exports, err := loadCache(fileName)
+	if err != nil {
+		log.Fatalf("%s\nPlaese run `sem update` or `sem update -q` before `sem load`", err)
 	}
 
-	cache(fileName)
+	printExports(exports,withExport)
 
 	return nil
 }
@@ -37,35 +39,31 @@ func getCacheFileName(fileName string) string {
 	return fmt.Sprintf(".cache.%s", fileName)
 }
 
-func loadCache(fileName string) error {
+func loadCache(fileName string) ([]string, error) {
 	cacheFileName := getCacheFileName(fileName)
 
 	data, err := os.ReadFile(cacheFileName)
 	if err == nil {
-		printExports(strings.Split(string(data), "\n"))
-		return nil
+		return strings.Split(string(data), "\n"), nil
 	}
 
-	return err
+	return nil, err
 }
 
-func printExports(exports []string) {
+func printExports(exports []string,withExport bool) {
 	for _, export := range exports {
 		if export == "" {
 			continue
 		}
-
+		if withExport {
+			export = fmt.Sprintf("export %s", export)
+		}else {
+			export = export
+		}
 		fmt.Printf("%s\n", export)
 	}
 }
 
-func cache(fileName string) {
-	config := readConfigFromFile(fileName)
-	exports := loadEnvironments(config)
-
-	os.WriteFile(getCacheFileName(fileName), []byte(strings.Join(exports, "")), 0644)
-	printExports(exports)
-}
 
 func readConfigFromFile(fileName string) *model.Config {
 	config := &model.Config{}
@@ -86,16 +84,16 @@ func readConfigFromFile(fileName string) *model.Config {
 	return config
 }
 
-func loadEnvironments(config *model.Config) []string {
+func loadEnvironments(config *model.Config, withQuote bool) []string {
 	exports := []string{}
 
-	gcpExports, err := gcp.Load(config)
+	gcpExports, err := gcp.Load(config,withQuote)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	exports = append(exports, gcpExports...)
 
-	awsExports, err := aws.Load(config)
+	awsExports, err := aws.Load(config,withQuote)
 	if err != nil {
 		log.Fatalln(err)
 	}

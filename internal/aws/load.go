@@ -7,8 +7,7 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/model"
 )
 
-func Load(config *model.Config) ([]string, error) {
-	fmt.Printf("%v\n", config)
+func Load(config *model.Config,withQuote bool) ([]string, error) {
 	err := error(nil)
 
 	exports := []string{}
@@ -46,13 +45,23 @@ func Load(config *model.Config) ([]string, error) {
 				return nil, fmt.Errorf("Key %s is not found in %s", env.Key, env.SecretName)
 			}
 
-			export := fmt.Sprintf("%s='%s'\n", env.Key, value)
+			export := ""
+			if withQuote {
+				export = fmt.Sprintf("%s='%s'\n", env.Key, value)
+			}else{
+				export = fmt.Sprintf("%s=%s\n", env.Key, value)
+			}
 			exports = append(exports, export)
-
 			continue
 		}
 
-		export := fmt.Sprintf("%s='%s'\n", env.ExportName, data)
+		export := ""
+		if withQuote {
+			export = fmt.Sprintf("%s='%s'\n", env.ExportName, data)
+		}else{
+			export = fmt.Sprintf("%s=%s\n", env.ExportName, data)
+		}
+		
 		exports = append(exports, export)
 	}
 

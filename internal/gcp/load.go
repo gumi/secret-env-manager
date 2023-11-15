@@ -6,7 +6,7 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/model"
 )
 
-func Load(config *model.Config) ([]string, error) {
+func Load(config *model.Config,withQuote bool) ([]string, error) {
 	exports := []string{}
 
 	for _, env := range config.Environments {
@@ -21,8 +21,13 @@ func Load(config *model.Config) ([]string, error) {
 			return nil, err
 		}
 
-		export := fmt.Sprintf("%s='%s'\n", env.ExportName, *data)
-
+		export := ""
+		if withQuote {
+			export = fmt.Sprintf("%s='%s'\n", env.ExportName, *data)
+		}else{
+			export = fmt.Sprintf("%s=%s\n", env.ExportName, *data)
+		}
+		
 		exports = append(exports, export)
 	}
 

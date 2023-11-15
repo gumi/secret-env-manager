@@ -46,6 +46,9 @@ secret name (created at)
 ------------------------------------------
 env has been saved.
 
+$ sem update
+cache updated.
+
 $ sem load
 SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
 TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
