@@ -53,9 +53,17 @@ $ sem load
 SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
 TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 
+# if you use fish shell
 $ env -i $(sem load) env
 SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
 TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
+
+# if you use bash or zsh shell
+$ eval $(sem load -e) | env
+...
+SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
+TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
+...
 
 
 ```
