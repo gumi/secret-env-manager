@@ -47,8 +47,8 @@ secret name (created at)
 env has been saved.
 
 $ sem load
-export SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
-export TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
+SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
+TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
 
 $ env -i $(sem load) env
 SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
