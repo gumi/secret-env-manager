@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"regexp"
+	"strings"
 	"time"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -37,6 +38,11 @@ func AccessSecretVersion(name string) (*string, error) {
 	}
 
 	data := string(result.Payload.Data)
+
+	// env format
+	data = strings.ReplaceAll(data, "\n", "")
+	data = strings.ReplaceAll(data, "\r", "")
+
 	return &data, nil
 }
 

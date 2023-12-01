@@ -108,6 +108,10 @@ func parseEnv(line string) (*model.Env, error) {
 }
 
 func WritePlainFile(config *model.Config, fileName string) error {
+	if config == nil {
+		return nil
+	}
+
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
