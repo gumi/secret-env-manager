@@ -2,3 +2,4 @@
 *.toml
 env
 .cache*
+dist/
