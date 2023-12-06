@@ -26,6 +26,12 @@ make install
 make uninstall
 ```
 
+## Install (macOS, Homebrew)
+
+```bash
+$ brew install gumi/tap/secret-env-manager
+```
+
 ## Usage
 
 ```bash
