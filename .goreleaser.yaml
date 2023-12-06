@@ -44,3 +44,8 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+brews:
+  - repository:
+      owner: gumi
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
