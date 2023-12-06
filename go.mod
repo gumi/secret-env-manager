@@ -2,8 +2,6 @@ module github.com/gumi-tsd/secret-env-manager
 
 go 1.21
 
-toolchain go1.21.4
-
 require (
 	cloud.google.com/go/secretmanager v1.11.4
 	github.com/BurntSushi/toml v1.3.2
