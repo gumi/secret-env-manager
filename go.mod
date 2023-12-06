@@ -1,6 +1,6 @@
 module github.com/gumi-tsd/secret-env-manager
 
-go 1.21
+go 1.20
 
 require (
 	cloud.google.com/go/secretmanager v1.11.4
