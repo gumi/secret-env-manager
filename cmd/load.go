@@ -31,7 +31,6 @@ func Load(c *cli.Context) error {
 	}
 
 	printExports(exports,withExport)
-
 	return nil
 }
 
