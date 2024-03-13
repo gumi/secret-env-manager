@@ -1,6 +1,8 @@
 .vscode
 *.toml
 dist/
+env
 
 # auto inserted by sem
-.cache.env # auto inserted
+.cache.env
+
