@@ -23,7 +23,10 @@ func ReadPlainFile(fileName string) (*model.Config, error) {
 	}
 
 	// 改行で分割する
-	lines := strings.Split(string(data), "\n")
+	// Convert CRLF to LF
+	text := strings.ReplaceAll(string(data), "\r\n", "\n")
+	lines := strings.Split(text, "\n")
+
 	// 環境変数をマップに格納する
 	for _, line := range lines {
 		if line == "" || line[0] == '#' {
