@@ -1,178 +1,244 @@
 # Secret Env Manager (sem)
 
-## Description
-googlecloud や AWS に保存してあるシークレットを環境変数にロードするツールです。
-- init コマンドは、環境変数にロードするシークレットを選択し、env ファイルを生成します。ただし、リストは１アカウントからしかとってこないので、簡単にenvファイルを作りたいときにだけ使えます。複数アカウントからシークレットを取得したい場合は、直接envファイルを編集してください。
-- load コマンドは、env ファイルを読み込み、export文を組み立てます。exportはキャッシュされるので、毎回シークレットを取得する必要はありません。
-- update コマンドは、env ファイルを読み込み、シークレットを更新します。
+[English](./README.md) / [日本語](./README_ja.md)
 
+A CLI tool that securely retrieves secrets from Google Cloud or AWS using IAM permissions and stores them as environment variables in env files. Simplifies secret management while maintaining security through cloud provider access controls.
 
-## Support
-- [x] Multi Account Support
-- [ ] Service
-  - [x] googlecloud Secret Manager
-  - [x] AWS Secrets Manager
-  - [ ] openstack ?
+---
 
-## Install
+## Features
 
+- **Multi-Account Support**
+- **Providers:**
+  - Google Cloud Secret Manager
+  - AWS Secrets Manager
+- **Commands:**
+  - `init`: Interactive secret selection from AWS or Google Cloud (choose provider at runtime)
+  - `load`: Read env file and output environment variables (with optional `export` prefix)
+  - `update`: Refresh secrets in the env file from cloud providers
+
+---
+
+## Installation
+
+### Using Make
 ```bash
 make install
 ```
 
-## uninstall
-    
+### Uninstall
 ```bash
 make uninstall
 ```
 
-## Install (macOS, Homebrew)
-
+### Using Homebrew (macOS)
 ```bash
-$ brew install gumi/tap/secret-env-manager
+brew install gumi/tap/secret-env-manager
 ```
+
+---
 
 ## Usage
 
+### CLI Help
 ```bash
-# other format
-# $ sem init -f toml
-$ sem init
-File `env` already exists. Do you want to overwrite it? (yes/no): yes
-------------------------------------------
-project : xxx-project
-Select secrets:
-secret name (created at)
-▶ [x] sample_secret (2023-01-01T00:00:00+00:00)
-==========================================
-profile : xxx-profile
-Select secrets:
-secret name (created at)
-▶ [x] test/test_secret (2023-01-01 08:00:00.000 +0000 UTC)
-------------------------------------------
-env has been saved.
-
-$ sem update
-cache updated.
-
-$ sem load
-SAMPLE_SECRET='knCFtym5URfRY#W9oaGUYGmxs4p'
-TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
-
-# if you use fish shell
-$ env -i $(sem load) env
-SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
-TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
-
-# if you use bash or zsh shell
-$ eval $(sem load -e) | env
-…
-SAMPLE_SECRET=knCFtym5URfRY#W9oaGUYGmxs4p
-TEST_TEST_SECRET='{"test_secret":"test_secretXXXXX"}'
-…
-
+sem -h
 ```
 
-## params
+### Commands
+| Command | Description |
+|---------|-------------|
+| `init`  | Interactive secret selection from both AWS and Google Cloud providers |
+| `load`  | Output environment variables from cached secrets |
+| `update`| Update cached secrets by fetching latest values |
 
-- Platform
-  - クラウドプラットフォームを指定します。現在は、gcp と aws が指定可能です。
-- Service
-  - シークレットを保存しているサービスを指定します。現在は、gcp の secretmanager と aws の secretsmanager が指定可能です。
-- Account
-  - シークレットを保存しているアカウントを指定します。
-- SecretName
-  - シークレット名を指定します。
-- ExportName
-  - 環境変数名を指定します。
-- Version
-  - シークレットのバージョンを指定します。gcp は latest と指定すると最新のバージョンを取得します。aws は AWSCURRENT と指定すると最新のバージョンを取得します。
-- Key
-  - シークレットのキーを指定します。gcp は指定しないでください。aws かつ 値が json の場合は指定したキーの値を取得します。
+#### Environment Variables Required for Providers
 
+For AWS Secrets Manager:
+- `AWS_PROFILE`: AWS profile to use
+- `AWS_REGION`: AWS region to query
 
-## env (plain) example
+For Google Cloud Secret Manager:
+- `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID
 
-```txt
-SAMPLE_SECRET=sem://googlecloud:secretmanager/xxx-project/sample_secret
-TEST_TEST_SECRET=sem://aws:secretsmanager/xxx-profile/test/test_secret
-```
+### Using with direnv
 
-### format
-`EXPORT_NAME=sem://<Platform>:<Service>/<Account>/<SecretName>?version=<Version>&key=<Key>`
+Secret Env Manager works seamlessly with direnv to automatically load environment variables when entering your project directory. Here's how to set it up:
 
-## env.toml example
+1. First, create an environment file (e.g., `.env`) containing your secret URIs:
+   ```
+   DB_PASSWORD=sem://aws:secretsmanager/dev-profile/database/credentials?key=password
+   API_KEY=sem://googlecloud:secretmanager/my-project/api-key
+   ```
 
-```toml
-[[Environments]]
-  Platform = "googlecloud"
-  Service = "secretmanager"
-  Account = "xxx-project"
-  SecretName = "sample_secret"
-  ExportName = "SAMPLE_SECRET"
-  Version = "latest"
+2. Run the `update` command to retrieve secrets and generate a cache file:
+   ```bash
+   sem update --input .env
+   ```
+   This will create a cache file named `.cache.env` containing the actual secret values.
 
+3. Add the following to your `.envrc` file:
+   ```bash
+   # Update secrets cache (optional but ensures freshness)
+   sem update --input .env
+   
+   # Load environment variables from the cache file
+   dotenv .cache.env
+   ```
 
-[[Environments]]
-  Platform = "aws"
-  Service = "secretsmanager"
-  Account = "xxx-profile"
-  SecretName = "test/test_secret"
-  ExportName = "TEST_TEST_SECRET"
-  Version = "AWSCURRENT"
+4. Allow the direnv configuration:
+   ```bash
+   direnv allow
+   ```
 
-```
+Now whenever you enter your project directory, direnv will automatically load the environment variables from the cache file, making your secrets available to your application.
 
+---
 
-# Help
-```bash
-# sem -h
+## Env File Format Examples
 
-NAME:
-   secret-env-manager - manage secret environment variables
+The env file supports various ways to specify secrets. Each line in the file follows the SecretURI format.
 
-USAGE:
-   secret-env-manager [global options] command [command options] [arguments...]
-
-COMMANDS:
-   init     Save the credentials stored in googlecloud Secret Manager as file.
-   load     Output a string to read credentials from SecretManager based on the file and export them as environment variables.
-   update   Forcefully update the cached information for the load command.
-   help, h  Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --help, -h  show help
-
-$ sem init -h
-
-USAGE:
-   secret-env-manager init [command options] [arguments...]
-
-OPTIONS:
-   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
-   --help, -h              show help
-
-
-$ sem load -h
-
-USAGE:
-   secret-env-manager load [command options] [arguments...]
-
-OPTIONS:
-   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
-   --with-export, -e       When this option is enabled, 'export' is added when displaying to standard output. (default: false)
-   --help, -h              show help
-
-
-$ sem update -h
-
-USAGE:
-   secret-env-manager update [command options] [arguments...]
-
-OPTIONS:
-   --file value, -f value  Load configuration from the specified format file. Available formats are Plain and Toml, and the default is Plain.
-   --with-quote, -q        When this option is enabled, single quotes are added to the cached environment variable values. It is generally recommended to use this option when the value contains spaces. (default: false)
-   --help, -h              show help
+### Basic Format
 
 ```
+# Comment line starts with #
+KEY=VALUE  # Regular environment variable (direct value assignment)
+
+# Secret URIs - used to fetch secrets from providers
+sem://aws:secretsmanager/profile/path/secret-name
+ENV_VAR=sem://aws:secretsmanager/profile/path/secret-name
+```
+
+You can mix both direct value assignments and Secret URIs in the same env file. Direct value assignments are preserved as-is, while Secret URIs are processed to fetch values from cloud providers.
+
+### AWS Secrets Examples
+
+#### 1. Retrieving all key-value pairs from a JSON secret
+
+**In your env file:**
+```
+sem://aws:secretsmanager/xxx-profile/test/test_secret
+```
+
+**After processing, becomes:**
+```
+key1=value1
+key2=value2
+...
+keyN=valueN
+```
+
+#### 2. Adding a prefix to all keys in a JSON secret
+
+**In your env file:**
+```
+KEY=sem://aws:secretsmanager/xxx-profile/test/test_secret
+```
+
+**After processing, becomes:**
+```
+KEY_key1=value1
+KEY_key2=value2
+...
+KEY_keyN=valueN
+```
+
+#### 3. Retrieving a specific key from a JSON secret
+
+**In your env file:**
+```
+sem://aws:secretsmanager/xxx-profile/test/test_secret?key=username
+```
+
+**After processing, becomes:**
+```
+username=value
+```
+
+#### 4. Assigning a specific key to an environment variable
+
+**In your env file:**
+```
+DB_USER=sem://aws:secretsmanager/xxx-profile/test/test_secret?key=username
+```
+
+**After processing, becomes:**
+```
+DB_USER=value
+```
+
+### Google Cloud Secrets Examples
+
+#### 1. Basic secret retrieval
+
+**In your env file:**
+```
+sem://googlecloud:secretmanager/xxx-project/sample_secret
+```
+
+**After processing, becomes:**
+```
+sample_secret=value
+```
+
+#### 2. Custom environment variable name
+
+**In your env file:**
+```
+API_KEY=sem://googlecloud:secretmanager/xxx-project/sample_secret
+```
+
+**After processing, becomes:**
+```
+API_KEY=value
+```
+
+### Complete Example of an env file
+
+```
+# Database credentials
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=myapp
+DB_USER=sem://aws:secretsmanager/dev-profile/database/credentials?key=username
+DB_PASSWORD=sem://aws:secretsmanager/dev-profile/database/credentials?key=password
+
+# API Keys
+GOOGLE_API_KEY=sem://googlecloud:secretmanager/my-project/google-api-key
+PAYMENT_API_SECRET=sem://aws:secretsmanager/payments-profile/payment/api-keys?key=secret
+
+# Import all email service settings with prefix
+EMAIL_SERVICE=sem://aws:secretsmanager/marketing-profile/email-service/settings
+
+# Version specific secret (retrieve a specific version)
+CONFIG_V1=sem://aws:secretsmanager/dev-profile/versioned-config?version=v1
+```
+
+---
+
+## SecretURI Format
+
+```
+EXPORT_NAME=sem://<Platform>:<Service>/<Account>/<SecretName>?version=<Version>&key=<Key>
+```
+
+| Field        | Description |
+|--------------|-------------|
+| Platform     | Cloud platform (`aws` or `gcp`) |
+| Service      | Secret service (`secretsmanager` for AWS, `secretmanager` for GCP) |
+| Account      | Account/profile/project name |
+| SecretName   | Name of the secret |
+| ExportName   | Environment variable name |
+| Version      | Secret version (`AWSCURRENT` for AWS, `latest` for GCP) |
+| Key          | (AWS only, for JSON secrets) Key to extract |
+
+> **Note:** For GoogleCloud, key can only be specified when the value is in JSON format.
+
+---
+
+## License
+
+Apache License, Version 2.0
+
 

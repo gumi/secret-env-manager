@@ -1,103 +1,158 @@
+// Package cmd implements command-line commands for the secret-env-manager
 package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"strings"
 
-	"github.com/gumi-tsd/secret-env-manager/internal/aws"
-	"github.com/gumi-tsd/secret-env-manager/internal/file"
-	"github.com/gumi-tsd/secret-env-manager/internal/googlecloud"
-	"github.com/gumi-tsd/secret-env-manager/internal/model"
+	"github.com/gumi-tsd/secret-env-manager/internal/env"
+	"github.com/gumi-tsd/secret-env-manager/internal/fileio"
+	"github.com/gumi-tsd/secret-env-manager/internal/functional"
 	"github.com/urfave/cli/v2"
 )
 
+// LoadParams contains parameters for the Load command
+type LoadParams struct {
+	InputFileName   string
+	OutputFileName  string
+	ExportOnlyUnset bool
+}
+
+// WithLoadParams creates a new LoadParams with provided values
+// Pure function: Always returns the same output for the same input
+func WithLoadParams(inputFileName, outputFileName string, exportOnlyUnset bool) LoadParams {
+	return LoadParams{
+		InputFileName:   inputFileName,
+		OutputFileName:  outputFileName,
+		ExportOnlyUnset: exportOnlyUnset,
+	}
+}
+
+// LoadResult represents the result of a load operation
+type LoadResult struct {
+	Lines           []string
+	ExportStatement string
+	OutputFileName  string
+	EnvVarsCount    int
+}
+
+// WithLoadResult creates a new LoadResult with provided values
+// Pure function: Always returns the same output for the same input
+func WithLoadResult(lines []string, exportStatement, outputFileName string, envVarsCount int) LoadResult {
+	return LoadResult{
+		Lines:           lines,
+		ExportStatement: exportStatement,
+		OutputFileName:  outputFileName,
+		EnvVarsCount:    envVarsCount,
+	}
+}
+
+// Load loads environment variables from a file and generates a shell export statement.
 func Load(c *cli.Context) error {
-	fileName := ""
-	withExport := c.Bool("with-export")
-
-	switch c.String("file") {
-	case "toml":
-		fileName = file.TOML_FILE_NAME
-
-	default:
-		fileName = file.PLAIN_FILE_NAME
+	// Validate parameters
+	paramsResult := validateLoadParams(c)
+	if paramsResult.IsFailure() {
+		return paramsResult.GetError()
 	}
 
-	exports, err := loadCache(fileName)
-	if err != nil {
-		log.Fatalf("%s\nPlaese run `sem update` or `sem update -q` before `sem load`", err)
+	// Load environment variables
+	loadResult := loadEnvVars(paramsResult.Unwrap())
+	if loadResult.IsFailure() {
+		return loadResult.GetError()
 	}
 
-	printExports(exports, withExport)
+	result := loadResult.Unwrap()
+
+	// Handle result
+	if c.Bool("with-export") {
+		// If with-export is specified, print the export statement
+		fmt.Println(result.ExportStatement)
+	} else {
+		// Otherwise print the variables without export statements
+		for _, line := range result.Lines {
+			fmt.Println(line)
+		}
+	}
+
 	return nil
 }
 
-func getCacheFileName(fileName string) string {
-	return fmt.Sprintf(".cache.%s", fileName)
-}
-
-func loadCache(fileName string) ([]string, error) {
-	cacheFileName := getCacheFileName(fileName)
-
-	data, err := os.ReadFile(cacheFileName)
-	if err == nil {
-		return strings.Split(string(data), "\n"), nil
+// validateLoadParams validates CLI parameters with Result monad
+// Pure function: Validates command-line arguments and returns a parameter object
+func validateLoadParams(c *cli.Context) functional.Result[LoadParams] {
+	inputFileName := c.String("input")
+	if inputFileName == "" {
+		return withFailure[LoadParams]("input file path required (-i or --input)")
 	}
 
-	return nil, err
-}
-
-func printExports(exports []string, withExport bool) {
-	for _, export := range exports {
-		if export == "" {
-			continue
-		}
-		if withExport {
-			export = fmt.Sprintf("export %s", export)
-		} else {
-			export = export
-		}
-		fmt.Printf("%s\n", export)
+	// Handle output file parameter
+	outputFileName := c.String("output")
+	if outputFileName == "" {
+		// If no output file is specified, use the cache file
+		outputFileName = fileio.GenerateCacheFileName(inputFileName)
 	}
+
+	// Whether to export only variables that are not already set in the environment
+	exportOnlyUnset := c.Bool("only-unset")
+
+	return withSuccess(WithLoadParams(
+		inputFileName,
+		outputFileName,
+		exportOnlyUnset,
+	))
 }
 
-func readConfigFromFile(fileName string) *model.Config {
-	config := &model.Config{}
-	err := error(nil)
-
-	switch fileName {
-	case file.TOML_FILE_NAME:
-		config, err = file.ReadTomlFile(fileName)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	default:
-		config, err = file.ReadPlainFile(fileName)
-		
-		if err != nil {
-			log.Fatalln(err)
-		}
+// loadEnvVars loads environment variables from a file using Result monad
+// Composite function: Combines file reading and environment variable processing
+func loadEnvVars(params LoadParams) functional.Result[LoadResult] {
+	// Read variables from file
+	varsResult := readEnvVarsFromFile(params.OutputFileName)
+	if varsResult.IsFailure() {
+		// Convert error to LoadResult error
+		return functional.Failure[LoadResult](varsResult.GetError())
 	}
-	return config
+
+	variables := varsResult.Unwrap()
+
+	// Filter variables if only-unset is specified
+	if params.ExportOnlyUnset {
+		variables = filterUnsetVariables(variables)
+	}
+
+	// Generate export statement and individual lines
+	// Generate with export prefix for export statement, but not for individual lines
+	exportWithPrefix, _ := env.FormatEnvVars(variables, true, false)
+	_, linesWithoutPrefix := env.FormatEnvVars(variables, false, false)
+
+	return withSuccess(WithLoadResult(
+		linesWithoutPrefix,
+		exportWithPrefix,
+		params.OutputFileName,
+		len(variables),
+	))
 }
 
-func loadEnvironments(config *model.Config, withQuote bool) []string {
-	exports := []string{}
-
-	gcpExports, err := googlecloud.Load(config, withQuote)
+// readEnvVarsFromFile reads environment variables from a file
+// Pure function: Wraps file I/O in a Result monad
+func readEnvVarsFromFile(fileName string) functional.Result[map[string]string] {
+	variables, err := fileio.ReadEnvVarsFromFile(fileName)
 	if err != nil {
-		log.Fatalln(err)
+		return withFailure[map[string]string](fmt.Sprintf(
+			"failed to read environment variables from %q: %v",
+			fileName, err))
 	}
-	exports = append(exports, gcpExports...)
+	return withSuccess(variables)
+}
 
-	awsExports, err := aws.Load(config, withQuote)
-	if err != nil {
-		log.Fatalln(err)
+// filterUnsetVariables filters out variables that are already set in the environment
+// Pure function: Returns a new filtered map without modifying the input
+func filterUnsetVariables(variables map[string]string) map[string]string {
+	filteredVars := make(map[string]string)
+	for key, value := range variables {
+		_, exists := os.LookupEnv(key)
+		if !exists {
+			filteredVars[key] = value
+		}
 	}
-	exports = append(exports, awsExports...)
-
-	return exports
-
+	return filteredVars
 }

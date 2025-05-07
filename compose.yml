@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SERVICES=secretsmanager
+      - AWS_DEFAULT_REGION=ap-northeast-1
+    volumes:
+      - ./localstack:/etc/localstack/init/ready.d
+      - /var/run/docker.sock:/var/run/docker.sock
