@@ -1,6 +1,6 @@
 # Variables for generating version information
 VERSION ?= $(shell date '+%Y-%m-%d')
-BUILD_TIME = $(shell date -u '+%Y-%m-%d %H:%M:%S')
+BUILD_TIME = $(shell date -u '+%Y-%m-%d %H:%M:%S %Z')
 COMMIT_HASH = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 LDFLAGS = -X 'main.version=$(VERSION)' -X 'main.buildTime=$(BUILD_TIME)' -X 'main.commitHash=$(COMMIT_HASH)'
 
@@ -12,9 +12,11 @@ check-gopath:
 		exit 1; \
 	fi
 
-install: check-gopath uninstall
+build:
 	GO111MODULE=on go mod tidy
 	GO111MODULE=on go build -ldflags "${LDFLAGS}" -o sem
+
+install: build
 	mv sem ${GOPATH}/bin
 
 uninstall: check-gopath
