@@ -127,6 +127,6 @@ func runApp(app *cli.App, args []string) functional.Result[bool] {
 // This function wraps the side effect of logging and exiting
 func logFatalError(message string) {
 	errorMsg := formatting.Error("Error running the application: %s", message)
-	logger.Error(errorMsg)
+	logger.Error("%s", errorMsg)
 	os.Exit(1)
 }

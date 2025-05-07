@@ -21,30 +21,30 @@ func withSuccess[T any](value T) functional.Result[T] {
 // withFailure creates a failure Result with an error message
 // Pure function: Always returns the same output for the same input
 func withFailure[T any](message string) functional.Result[T] {
-	return functional.Failure[T](fmt.Errorf(message))
+	return functional.Failure[T](fmt.Errorf("%s", message))
 }
 
 // logInfoMsg logs information message (side effect)
 func logInfoMsg(message string) {
-	logger.Info(message)
+	logger.Info("%s", message)
 }
 
 // logSuccessInfo logs success information (side effect)
 func logSuccessInfo(message string) {
-	logger.Success(message)
+	logger.Success("%s", message)
 }
 
 // logWarning logs a warning message (side effect)
 func logWarning(message string) {
-	logger.Warn(message)
+	logger.Warn("%s", message)
 }
 
 // logDebugInfo logs debug information (side effect)
 func logDebugInfo(message string) {
-	logger.Info(message)
+	logger.Info("%s", message)
 }
 
 // logErrorMsg logs an error message (side effect)
 func logErrorMsg(message string) {
-	logger.Error(message)
+	logger.Error("%s", message)
 }

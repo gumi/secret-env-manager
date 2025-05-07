@@ -17,7 +17,7 @@ var logger = logging.DefaultLogger()
 
 // LogInfoMsg logs information messages with consistent formatting
 func LogInfoMsg(message string) {
-	logger.Info(message)
+	logger.Info("%s", message)
 }
 
 // Error definitions

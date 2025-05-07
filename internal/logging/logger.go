@@ -115,17 +115,17 @@ func (l *Logger) log(level Level, format string, args ...interface{}) {
 	if l.colorized {
 		switch level {
 		case DebugLevel:
-			message = formatting.Info(message)
+			message = formatting.Info("%s", message)
 		case InfoLevel:
 			// Default color
 		case WarnLevel:
-			message = formatting.Warning(message)
+			message = formatting.Warning("%s", message)
 		case ErrorLevel:
-			message = formatting.Error(message)
+			message = formatting.Error("%s", message)
 		case SuccessLevel:
-			message = formatting.Success(message)
+			message = formatting.Success("%s", message)
 		}
-		prefix = formatting.Info(prefix)
+		prefix = formatting.Info("%s", prefix)
 	}
 
 	fmt.Fprintf(l.writer, "%s%s\n", prefix, message)
