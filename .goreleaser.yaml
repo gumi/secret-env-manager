@@ -23,6 +23,11 @@ builds:
       - windows
       - darwin
     binary: "sem"
+    ldflags:
+      - -s -w
+      - -X main.gitTag={{.Tag}}
+      - -X main.buildTime={{.Env.BUILD_TIME}}
+      - -X main.commitHash={{.Env.COMMIT_HASH}}
 
 archives:
   - format: tar.gz

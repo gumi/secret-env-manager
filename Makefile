@@ -1,8 +1,8 @@
 # Variables for generating version information
-VERSION ?= $(shell date '+%Y-%m-%d')
 BUILD_TIME = $(shell date -u '+%Y-%m-%d %H:%M:%S %Z')
 COMMIT_HASH = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
-LDFLAGS = -X 'main.version=$(VERSION)' -X 'main.buildTime=$(BUILD_TIME)' -X 'main.commitHash=$(COMMIT_HASH)'
+GIT_TAG = $(shell git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
+LDFLAGS = -X 'main.gitTag=$(GIT_TAG)' -X 'main.version=$(VERSION)' -X 'main.buildTime=$(BUILD_TIME)' -X 'main.commitHash=$(COMMIT_HASH)'
 
 # Check if GOPATH is set
 check-gopath:
@@ -38,3 +38,8 @@ test-all: test test-integration
 
 test-integration:
 	./tests/run_tests.sh
+
+.PHONY: tag
+tag:
+	@echo "Creating git tag $(tag)"
+	@git tag -a $(tag) -m "Release $(tag)"

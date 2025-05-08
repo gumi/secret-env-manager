@@ -1,8 +1,10 @@
 .vscode
 *.toml
 dist/
-coverage.out
+coverage*
 
 sem
 
 **/.cache.*
+.env
+
