@@ -11,40 +11,37 @@ import (
 // logger is a package-level logger instance used for command logging
 var logger = logging.DefaultLogger()
 
-// Helper functions for creating Result monads
 // withSuccess wraps a value in a successful Result
-// Pure function: Always returns the same output for the same input
 func withSuccess[T any](value T) functional.Result[T] {
 	return functional.Success(value)
 }
 
 // withFailure creates a failure Result with an error message
-// Pure function: Always returns the same output for the same input
 func withFailure[T any](message string) functional.Result[T] {
 	return functional.Failure[T](fmt.Errorf("%s", message))
 }
 
-// logInfoMsg logs information message (side effect)
+// logInfoMsg logs information message
 func logInfoMsg(message string) {
 	logger.Info("%s", message)
 }
 
-// logSuccessInfo logs success information (side effect)
+// logSuccessInfo logs success information
 func logSuccessInfo(message string) {
 	logger.Success("%s", message)
 }
 
-// logWarning logs a warning message (side effect)
+// logWarning logs a warning message
 func logWarning(message string) {
 	logger.Warn("%s", message)
 }
 
-// logDebugInfo logs debug information (side effect)
+// logDebugInfo logs debug information
 func logDebugInfo(message string) {
 	logger.Info("%s", message)
 }
 
-// logErrorMsg logs an error message (side effect)
+// logErrorMsg logs an error message
 func logErrorMsg(message string) {
 	logger.Error("%s", message)
 }

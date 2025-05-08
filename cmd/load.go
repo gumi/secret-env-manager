@@ -19,7 +19,6 @@ type LoadParams struct {
 }
 
 // WithLoadParams creates a new LoadParams with provided values
-// Pure function: Always returns the same output for the same input
 func WithLoadParams(inputFileName, outputFileName string, exportOnlyUnset bool) LoadParams {
 	return LoadParams{
 		InputFileName:   inputFileName,
@@ -37,7 +36,6 @@ type LoadResult struct {
 }
 
 // WithLoadResult creates a new LoadResult with provided values
-// Pure function: Always returns the same output for the same input
 func WithLoadResult(lines []string, exportStatement, outputFileName string, envVarsCount int) LoadResult {
 	return LoadResult{
 		Lines:           lines,
@@ -78,7 +76,6 @@ func Load(c *cli.Context) error {
 }
 
 // validateLoadParams validates CLI parameters with Result monad
-// Pure function: Validates command-line arguments and returns a parameter object
 func validateLoadParams(c *cli.Context) functional.Result[LoadParams] {
 	inputFileName := c.String("input")
 	if inputFileName == "" {
@@ -103,7 +100,6 @@ func validateLoadParams(c *cli.Context) functional.Result[LoadParams] {
 }
 
 // loadEnvVars loads environment variables from a file using Result monad
-// Composite function: Combines file reading and environment variable processing
 func loadEnvVars(params LoadParams) functional.Result[LoadResult] {
 	// Read variables from file
 	varsResult := readEnvVarsFromFile(params.OutputFileName)
@@ -133,7 +129,6 @@ func loadEnvVars(params LoadParams) functional.Result[LoadResult] {
 }
 
 // readEnvVarsFromFile reads environment variables from a file
-// Pure function: Wraps file I/O in a Result monad
 func readEnvVarsFromFile(fileName string) functional.Result[map[string]string] {
 	variables, err := fileio.ReadEnvVarsFromFile(fileName)
 	if err != nil {
@@ -145,7 +140,6 @@ func readEnvVarsFromFile(fileName string) functional.Result[map[string]string] {
 }
 
 // filterUnsetVariables filters out variables that are already set in the environment
-// Pure function: Returns a new filtered map without modifying the input
 func filterUnsetVariables(variables map[string]string) map[string]string {
 	filteredVars := make(map[string]string)
 	for key, value := range variables {

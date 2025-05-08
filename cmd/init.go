@@ -42,7 +42,6 @@ type EnvParams struct {
 }
 
 // WithEnvParams creates a new EnvParams with provided values
-// Pure function: Always returns the same output for the same input
 func WithEnvParams(provider Provider, awsProfile, awsRegion, endpointURL, googleCloudProjectID string) *EnvParams {
 	return &EnvParams{
 		Provider:             provider,
@@ -63,10 +62,6 @@ type InitResult struct {
 }
 
 // Init initializes the environment by listing secrets from cloud providers and allows interactive selection
-// It supports both AWS Secrets Manager and Google Cloud Secret Manager.
-// For AWS, it requires AWS_PROFILE and AWS_REGION environment variables.
-// For Google Cloud, it requires GOOGLE_CLOUD_PROJECT environment variable.
-// Custom AWS endpoints can be specified using the --endpoint-url flag.
 func Init(c *cli.Context) error {
 	// Get endpoint URL from flag
 	endpointURL := c.String("endpoint-url")
@@ -137,7 +132,6 @@ func Init(c *cli.Context) error {
 }
 
 // selectProvider prompts the user to select a secret provider (AWS or Google Cloud)
-// Returns a Result monad with the selected provider
 func selectProvider() functional.Result[Provider] {
 	prompt := promptui.Select{
 		Label: "Select a secret provider",
@@ -156,9 +150,6 @@ func selectProvider() functional.Result[Provider] {
 }
 
 // validateEnvironment validates required environment variables based on selected provider
-// For AWS: checks AWS_PROFILE and AWS_REGION
-// For Google Cloud: checks GOOGLE_CLOUD_PROJECT
-// Pure function: Returns a Result monad with environment parameters
 func validateEnvironment(provider Provider, endpointURL string) functional.Result[*EnvParams] {
 	if provider == AWSProvider {
 		// Check AWS_PROFILE with Option monad
@@ -198,7 +189,6 @@ func validateEnvironment(provider Provider, endpointURL string) functional.Resul
 }
 
 // getEnvOption gets an environment variable as an Option
-// Pure function: Transforms environment lookups to Option monad
 func getEnvOption(name string) functional.Option[string] {
 	value, exists := os.LookupEnv(name)
 	if !exists || value == "" {
@@ -208,7 +198,6 @@ func getEnvOption(name string) functional.Option[string] {
 }
 
 // listAwsSecrets retrieves secrets from AWS Secrets Manager
-// Pure function: Returns a Result monad with secret names
 func listAwsSecrets(awsProfile, awsRegion, endpointURL string) functional.Result[[]string] {
 	ctx := context.Background()
 
@@ -225,7 +214,6 @@ func listAwsSecrets(awsProfile, awsRegion, endpointURL string) functional.Result
 }
 
 // listGoogleCloudSecrets retrieves secrets from Google Cloud Secret Manager
-// Pure function: Returns a Result monad with secret names
 func listGoogleCloudSecrets(projectID string) functional.Result[[]string] {
 	ctx := context.Background()
 
@@ -237,7 +225,6 @@ func listGoogleCloudSecrets(projectID string) functional.Result[[]string] {
 }
 
 // listAwsSecretsWithEndpoint retrieves secrets using a custom endpoint
-// Pure function: Returns a Result monad with secret names
 func listAwsSecretsWithEndpoint(ctx context.Context, provider *aws.AwsProvider,
 	awsProfile, awsRegion, endpointURL string) functional.Result[[]string] {
 
@@ -278,7 +265,6 @@ func listAwsSecretsWithEndpoint(ctx context.Context, provider *aws.AwsProvider,
 }
 
 // extractSecretNames extracts names from secret list
-// Pure function: Returns a list of secret names
 func extractSecretNames(secretList []types.SecretListEntry) []string {
 	secrets := make([]string, 0, len(secretList))
 	for _, secret := range secretList {
@@ -290,7 +276,6 @@ func extractSecretNames(secretList []types.SecretListEntry) []string {
 }
 
 // selectSecretsResult shows an interactive select prompt for secrets
-// Returns a Result monad for consistent error handling
 func selectSecretsResult(secretNames []string) functional.Result[[]string] {
 	if len(secretNames) == 0 {
 		return withSuccess([]string{})
@@ -306,7 +291,6 @@ func selectSecretsResult(secretNames []string) functional.Result[[]string] {
 }
 
 // selectSecrets shows an interactive select prompt for secrets
-// Side effect function: Interacts with the user through terminal
 func selectSecrets(secretNames []string) ([]string, error) {
 	if len(secretNames) == 0 {
 		return []string{}, nil
@@ -330,7 +314,6 @@ func selectSecrets(secretNames []string) ([]string, error) {
 }
 
 // outputSelectedSecrets prints the selected secret URIs to standard output
-// Side effect function: Prints to standard output
 func outputSelectedSecrets(secretNames []string, params *EnvParams) {
 	if len(secretNames) == 0 {
 		return
@@ -355,7 +338,6 @@ func outputSelectedSecrets(secretNames []string, params *EnvParams) {
 }
 
 // displayNextSteps shows the user what to do next
-// Side effect function: Prints to standard output
 func displayNextSteps() {
 	fmt.Println(formatting.FormatHeader("\nNext Steps"))
 	fmt.Println(formatting.Hint("1. Create or edit your environment file with any name (e.g. .env, dev.env, prod.env) and add the secret URI"))
@@ -394,7 +376,6 @@ func displayNextSteps() {
 }
 
 // buildAwsSecretURI creates a SecretURI for the given AWS secret name
-// Pure function: Always returns the same output for the same input
 func buildAwsSecretURI(secretName, awsProfile, awsRegion string) uri.SecretURI {
 	return uri.SecretURI{
 		Platform:   string(AWSProvider),
@@ -407,7 +388,6 @@ func buildAwsSecretURI(secretName, awsProfile, awsRegion string) uri.SecretURI {
 }
 
 // buildGcpSecretURI creates a SecretURI for the given Google Cloud secret name
-// Pure function: Always returns the same output for the same input
 func buildGoogleCloudSecretURI(secretName, projectID string) uri.SecretURI {
 	return uri.SecretURI{
 		Platform:   string(GoogleCloudProvider),
