@@ -1,5 +1,7 @@
 # Secret Env Manager (sem)
 
+![GitHub Release](https://img.shields.io/github/v/release/gumi/secret-env-manager)
+
 [English](./README.md) / [日本語](./README_ja.md)
 
 A CLI tool that securely retrieves secrets from Google Cloud or AWS using IAM permissions and stores them as environment variables in env files. Simplifies secret management while maintaining security through cloud provider access controls.

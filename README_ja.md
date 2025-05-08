@@ -1,5 +1,7 @@
 # Secret Env Manager (sem)
 
+![GitHub Release](https://img.shields.io/github/v/release/gumi/secret-env-manager)
+
 [English](./README.md) / [日本語](./README_ja.md)
 
 Google CloudやAWSのIAM権限を使用してシークレットを安全に取得し、環境変数としてenvファイルに保存するCLIツールです。クラウドプロバイダのアクセス制御を通じてセキュリティを維持しながら、シークレット管理を簡素化します。
