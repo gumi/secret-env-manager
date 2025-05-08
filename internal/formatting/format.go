@@ -1,4 +1,6 @@
 // Package formatting provides text formatting and colorization utilities.
+//
+// format.go handles pure text formatting operations without color.
 package formatting
 
 import (
@@ -10,8 +12,9 @@ import (
 	"github.com/gumi-tsd/secret-env-manager/internal/functional"
 )
 
-// FormatKeyValuePair formats a key-value pair with or without quotes
-// Pure function that handles environment variable formatting
+// ---- Basic formatting functions ----
+
+// FormatKeyValuePair formats a key-value pair with optional quotes
 func FormatKeyValuePair(key, value string, useQuotes bool) string {
 	if useQuotes {
 		return fmt.Sprintf("%s='%s'", key, value)
@@ -19,29 +22,33 @@ func FormatKeyValuePair(key, value string, useQuotes bool) string {
 	return fmt.Sprintf("%s=%s", key, value)
 }
 
-// FormatKeyValues formats multiple key-value pairs into lines
-func FormatKeyValues(keys []string, values map[string]string, useQuotes bool) []string {
-	lines := make([]string, 0, len(keys))
-	for _, key := range keys {
-		if value, ok := values[key]; ok {
-			lines = append(lines, FormatKeyValuePair(key, value, useQuotes))
-		}
-	}
-	return lines
-}
-
-// Indent adds a prefix to each line in a multi-line string
-func Indent(text, prefix string) string {
-	if text == "" {
-		return ""
+// FormatExportLine formats an environment variable with export prefix
+// Handles various quoting scenarios for shell compatibility
+func FormatExportLine(key, value string) string {
+	// Input validation
+	if key == "" {
+		// Return default value for backward compatibility
+		return "export=''"
 	}
 
-	lines := strings.Split(text, "\n")
-	for i, line := range lines {
-		lines[i] = prefix + line
+	// Handle value already wrapped in single quotes
+	if HasSingleQuotes(value) {
+		return fmt.Sprintf("export %s=%s", key, value)
 	}
-	return strings.Join(lines, "\n")
+
+	// Handle embedded single quotes with shell-safe escaping
+	if strings.Contains(value, "'") {
+		// Use shell escape pattern: 'It'\''s a test'
+		parts := strings.Split(value, "'")
+		escaped := strings.Join(parts, "'\\''")
+		return fmt.Sprintf("export %s='%s'", key, escaped)
+	}
+
+	// Normal case
+	return fmt.Sprintf("export %s='%s'", key, value)
 }
+
+// ---- Quote and string manipulation functions ----
 
 // HasSingleQuotes checks if a string is surrounded by single quotes
 func HasSingleQuotes(s string) bool {
@@ -63,39 +70,20 @@ func UnwrapQuotes(value string) string {
 	return value
 }
 
-// EscapeSingleQuotes escapes single quotes in a string for shell usage
-func EscapeSingleQuotes(value string) string {
-	return strings.ReplaceAll(value, "'", "\\'")
+// ---- Map and collection functions ----
+
+// SortMapKeys returns a sorted slice of all keys in a map
+func SortMapKeys(m map[string]string) []string {
+	result := SortMapKeysResult(m)
+	return result.Unwrap()
 }
 
-// FormatExportLine formats an environment variable with export prefix
-func FormatExportLine(key, value string) string {
-	// Handle case of value already wrapped in single quotes
-	if HasSingleQuotes(value) {
-		return fmt.Sprintf("export %s=%s", key, value)
-	}
+// ---- Result monad wrapper functions ----
 
-	// Special handling for embedded single quotes
-	if strings.Contains(value, "'") {
-		// Use the shell escape pattern: 'It'\''s a test' instead of escaping with backslash
-		parts := strings.Split(value, "'")
-		escaped := strings.Join(parts, "'\\''")
-		return fmt.Sprintf("export %s='%s'", key, escaped)
-	}
-
-	// Normal case
-	return fmt.Sprintf("export %s='%s'", key, value)
-}
-
-// FormatPlainLine formats a key-value pair without export
-func FormatPlainLine(key, value string) string {
-	return fmt.Sprintf("%s=%s", key, value)
-}
-
-// FormatLineResult formats a key-value pair with Result monad
+// FormatLineResult formats a key-value pair using Result monad for error handling
 func FormatLineResult(key, value string, useExport bool, useQuotes bool) functional.Result[string] {
 	if key == "" {
-		return functional.Failure[string](fmt.Errorf("invalid environment variable format"))
+		return functional.Failure[string](fmt.Errorf("invalid environment variable format: key cannot be empty"))
 	}
 
 	if useExport {
@@ -107,7 +95,7 @@ func FormatLineResult(key, value string, useExport bool, useQuotes bool) functio
 
 // SortMapKeysResult returns a sorted slice of all keys in a map with Result monad
 func SortMapKeysResult(m map[string]string) functional.Result[[]string] {
-	// Guard against nil map
+	// Handle nil map
 	if m == nil {
 		return functional.Success([]string{})
 	}
@@ -120,18 +108,15 @@ func SortMapKeysResult(m map[string]string) functional.Result[[]string] {
 	return functional.Success(keys)
 }
 
-// SortMapKeys returns a sorted slice of all keys in a map
-func SortMapKeys(m map[string]string) []string {
-	result := SortMapKeysResult(m)
-	// This should never fail as the function is pure and we guard against nil values
-	if result.IsFailure() {
-		return []string{}
-	}
-	return result.Unwrap()
-}
+// ---- JSON and complex value formatting ----
 
 // FormatJSONKeyValueResult formats a nested JSON key-value pair with Result monad
 func FormatJSONKeyValueResult(parentKey, jsonKey string, jsonValue interface{}, useQuotes bool) functional.Result[string] {
+	// Validate keys
+	if parentKey == "" || jsonKey == "" {
+		return functional.Failure[string](fmt.Errorf("parent key and JSON key must not be empty"))
+	}
+
 	valueResult := FormatValueForEnvResult(jsonValue)
 	if valueResult.IsFailure() {
 		return functional.Failure[string](
@@ -148,25 +133,20 @@ func FormatJSONKeyValueResult(parentKey, jsonKey string, jsonValue interface{}, 
 	return functional.Success(FormatKeyValuePair(compositeKey, valueStr, useQuotes))
 }
 
-// FormatJSONKeyValue formats a nested JSON key-value pair
-func FormatJSONKeyValue(parentKey, jsonKey string, jsonValue interface{}, useQuotes bool) (string, error) {
-	// Use the Result monad version and handle errors explicitly
-	result := FormatJSONKeyValueResult(parentKey, jsonKey, jsonValue, useQuotes)
-	if result.IsFailure() {
-		return "", result.GetError()
-	}
-	return result.Unwrap(), nil
-}
-
 // FormatValueForEnvResult formats a value with Result monad
+// Handles nil, basic types, and complex types via JSON marshaling
 func FormatValueForEnvResult(value interface{}) functional.Result[string] {
+	if value == nil {
+		return functional.Success("null")
+	}
+
 	switch v := value.(type) {
 	case string:
 		return functional.Success(v)
 	case float64, int, bool:
 		return functional.Success(fmt.Sprintf("%v", v))
 	default:
-		// If not a simple type, try to marshal to JSON
+		// For complex types, marshal to JSON
 		jsonBytes, err := json.Marshal(value)
 		if err != nil {
 			return functional.Failure[string](fmt.Errorf("failed to marshal JSON: %w", err))
@@ -175,7 +155,8 @@ func FormatValueForEnvResult(value interface{}) functional.Result[string] {
 	}
 }
 
-// FormatValueForEnv formats a value based on its type for environment variables
+// FormatValueForEnv formats a value for environment variables
+// Convenience wrapper around FormatValueForEnvResult
 func FormatValueForEnv(value interface{}) (string, error) {
 	result := FormatValueForEnvResult(value)
 	if result.IsFailure() {
