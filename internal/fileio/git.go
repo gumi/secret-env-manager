@@ -78,23 +78,38 @@ func CheckGitIgnoreStatus(fileName string) GitIgnoreStatus {
 
 // ExecuteGitCheckIgnore runs the git check-ignore command
 func ExecuteGitCheckIgnore(fileName string) GitIgnoreStatus {
-	cmd := exec.Command("git", "check-ignore", fileName)
-	output, err := cmd.CombinedOutput()
+    cmd := exec.Command("git", "check-ignore", fileName)
+    output, err := cmd.CombinedOutput()
 
-	if exitError, ok := err.(*exec.ExitError); ok && exitError.ExitCode() == 1 {
-		// Exit code 1 means the file is NOT ignored
-		return NewGitIgnoreStatus(fileName, false, nil)
-	} else if err != nil {
-		// Generate the error message using a pure function
-		errorMsg := formatting.Warning("Error checking git ignore status: %s", err)
-		fmt.Println(errorMsg)
-		// Assume not ignored on error for safety
-		return NewGitIgnoreStatus(fileName, false,
-			fmt.Errorf("error checking git ignore status: %w", err))
-	}
+    // Git command not found - consider the file as ignored to allow operation
+    if execErr, ok := err.(*exec.Error); ok && execErr.Err == exec.ErrNotFound {
+        return NewGitIgnoreStatus(fileName, true, nil)
+    }
 
-	// If output has content, the file is ignored
-	return NewGitIgnoreStatus(fileName, len(output) > 0, nil)
+    if exitError, ok := err.(*exec.ExitError); ok {
+        // Exit code 1 means the file is NOT ignored
+        if exitError.ExitCode() == 1 {
+            return NewGitIgnoreStatus(fileName, false, nil)
+        }
+        
+        // Exit code 128 typically means "not in a git repository" or similar git error
+        // In this case, assume the file is ignored to allow operation
+        if exitError.ExitCode() == 128 {
+            return NewGitIgnoreStatus(fileName, true, nil)
+        }
+    }
+
+    // Other unexpected errors - log but don't block operation
+    if err != nil {
+        // Generate the error message using a pure function
+        errorMsg := formatting.Warning("Error checking git ignore status: %s", err)
+        fmt.Println(errorMsg)
+        // When in doubt, assume the file is ignored to allow operation
+        return NewGitIgnoreStatus(fileName, true, nil)
+    }
+
+    // If output has content, the file is ignored
+    return NewGitIgnoreStatus(fileName, len(output) > 0, nil)
 }
 
 // IsFileIgnored checks if the specified file is ignored by git
