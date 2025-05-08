@@ -16,9 +16,9 @@ import (
 
 // These variables are set during build time using -ldflags
 var (
-	gitTag     = "unknown"
-	buildTime  = "unknown"
-	commitHash = "unknown"
+    version = "dev"
+    commit  = "none"
+    date    = "unknown"
 )
 
 // CLI flag definitions
@@ -69,7 +69,7 @@ func main() {
 // createApp sets up the CLI application configuration
 // Pure function: Always returns the same output for the same inputs
 func createApp() *cli.App {
-	version := fmt.Sprintf("%s (built: %s, commit: %s)", gitTag, buildTime, commitHash)
+	version := fmt.Sprintf("%s (built: %s, commit: %s)", version, date, commit)
 
 	return &cli.App{
 		Name:    "secret-env-manager (sem)",

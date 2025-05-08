@@ -19,13 +19,8 @@ jobs:
           fetch-depth: 0
       -
         name: Set up Go
-        uses: actions/setup-go@v4
-      -
-        name: Set Build Variables
-        id: build_vars
-        run: |
-          echo "BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_ENV
-          echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        uses: actions/setup-go@v5
+
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -36,6 +31,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          BUILD_TIME: ${{ env.BUILD_TIME }}
-          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+
           

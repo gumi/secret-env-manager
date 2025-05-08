@@ -2,7 +2,8 @@
 BUILD_TIME = $(shell date -u '+%Y-%m-%d %H:%M:%S %Z')
 COMMIT_HASH = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 GIT_TAG = $(shell git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
-LDFLAGS = -X 'main.gitTag=$(GIT_TAG)' -X 'main.version=$(VERSION)' -X 'main.buildTime=$(BUILD_TIME)' -X 'main.commitHash=$(COMMIT_HASH)'
+VERSION ?= $(GIT_TAG)
+LDFLAGS = -X 'main.version=$(VERSION)' -X 'main.date=$(BUILD_TIME)' -X 'main.commit=$(COMMIT_HASH)'
 
 # Check if GOPATH is set
 check-gopath:
@@ -17,7 +18,7 @@ build:
 	GO111MODULE=on go build -ldflags "${LDFLAGS}" -o sem
 
 install: build
-	mv sem ${GOPATH}/bin
+	mv sem ${GOPATH}/bin/sem
 
 uninstall: check-gopath
 	-rm ${GOPATH}/bin/sem
@@ -38,8 +39,3 @@ test-all: test test-integration
 
 test-integration:
 	./tests/run_tests.sh
-
-.PHONY: tag
-tag:
-	@echo "Creating git tag $(tag)"
-	@git tag -a $(tag) -m "Release $(tag)"
