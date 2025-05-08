@@ -33,7 +33,7 @@ builds:
       - -X main.commitHash={{.Env.COMMIT_HASH}}
 
 archives:
-  - format: tar.gz
+  - formats: [ 'zip' ]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
@@ -45,7 +45,7 @@ archives:
     # use zip for windows archives
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ 'zip' ]
 
 changelog:
   sort: asc
