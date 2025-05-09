@@ -1,0 +1,54 @@
+# CHANGELOGS
+
+## 1.0.2
+- Update environment variable formatting: refine warning message for missing keys
+- Add expected values for tests
+
+## 1.0.1 (May 8, 2025)
+- Enhance git ignore status check: handle command not found and specific exit codes
+- Add GitHub release badge to README files
+
+## 1.0.0 (May 8, 2025)
+- Update build configuration: enhance versioning and remove redundant variables
+- Fix archive format configuration to use 'zip' for all platforms
+- Update GoReleaser action to version 6 in workflow configuration
+- Fix build configuration: reorder OS and architecture settings in .goreleaser.yaml
+- Enhance build process by adding environment variables for build time and commit hash
+- Update Go application versioning to reflect these changes
+- Refactor: Remove redundant comments and improve code clarity across multiple files
+- Refactor: Enhance color formatting utilities and add comprehensive tests
+- Implement structural updates and optimizations across multiple modules
+- Refactor logging calls to use formatted strings for message formatting
+
+> **BREAKING CHANGE**: Default input file name changed from `env` to `.env`
+
+## 2024.03.15 (March 15, 2024)
+- Fix CRLF issue
+
+## 2024.03.13 (March 13, 2024)
+- Fix environment variable specification to use ExportName
+- Update .gitignore
+- Change .cache.env permissions to 644 and make it automatically added to .gitignore
+
+## 2023.12.06 (December 6, 2023)
+- Change binary name for consistency
+- Add Homebrew release support
+- Update Go version to 1.20 for GitHub Actions compatibility
+- Remove toolchain specification
+- Add GoReleaser workflow and settings
+
+## Initial Development (November - December 2023)
+- Fix plain text formatting and remove newlines from Google Cloud secrets
+- Rename "gcp" to "googlecloud" throughout the codebase
+- Add help information to README
+- Add options for adding 'export' and single quotes to environment variables
+- Update README with usage information
+- Change implementation to avoid using eval
+- Enable specifying keys for JSON return values
+- Add AWS version specification support
+- Implement caching of loaded values
+- Update AWS loading functionality
+- Add support for plain format and make it the default
+- Add AWS integration and reorganize code structure
+- Add initial GCP Secret Manager integration
+- Initial project creation
