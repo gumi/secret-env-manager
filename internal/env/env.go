@@ -48,8 +48,8 @@ func FormatEnvVarContent(values EnvVarMap, options EnvVarOptions) functional.Res
 
 	for i, key := range filteredKeys {
 		value, exists := values[key]
-		if !exists || value == "" {
-			warnings = append(warnings, fmt.Sprintf("Key '%s' not found or empty in secret values", key))
+		if !exists {
+			warnings = append(warnings, fmt.Sprintf("Key '%s' not found in secret values", key))
 			continue
 		}
 
